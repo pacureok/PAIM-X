@@ -1,0 +1,3 @@
+[submodule "base_audiocraft"]
+	path = base_audiocraft
+	url = https://github.com/facebookresearch/audiocraft.git
