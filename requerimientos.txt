@@ -1,0 +1,13 @@
+# Motor principal
+torch
+torch_xla # La magia para que la TPU funcione
+torchaudio
+
+# Modelo base
+-e ./base_model # Instala el AudioCraft que acabamos de clonar
+
+# Pipeline de extracción de audio
+yt-dlp
+demucs
+librosa
+soundfile
