@@ -1,75 +1,67 @@
 import os
-import sys
 import torch
 import soundfile as sf
+from extractor_yt import ExtractorPAIM
+from paim_x_core import PAIM_X
+from mezclador_3d import MezcladorEspacialIA
+from marca_agua_plbs import MarcaDeAguaPLBS
 
-# Importación de módulos de Pacure Labs
-try:
-    from extractor_yt import ExtractorPAIM
-    from paim_x_core import PAIM_X
-    from mezclador_3d import MezcladorEspacialIA
-    from marca_agua_plbs import MarcaDeAguaPLBS
-except ImportError as e:
-    print(f"❌ Error de dependencias: {e}")
-    print("Asegúrate de haber ejecutado 'bash instalar_dependencias.sh' primero.")
-    sys.exit(1)
+def lanzar_paim_x():
+    print("\n" + "█"*40)
+    print("      PACURE LABS - PAIM-X V1.2")
+    print("    SOPORTE MULTI-GPU ACTIVADO")
+    print("█"*40 + "\n")
 
-def paim_x_engine():
-    print("\n" + "="*60)
-    print("🚀 PAIM-X V1.0 - BY PACURE LABS 🚀")
-    print("La próxima generación de audio generativo multimodal")
-    print("="*60 + "\n")
+    # ENTRADAS DE USUARIO
+    PROMPT = input("🎹 Prompt Musical: ")
+    URL_YT = input("🔗 Link de YouTube: ")
+    DURACION = input("⏱️ Duración (Ej: 3:00): ")
+    m, s = map(int, DURACION.split(':'))
+    SEGUNDOS = (m * 60) + s
 
-    # --- CONFIGURACIÓN DE USUARIO ---
-    # En entornos públicos, estos valores se pueden cambiar aquí:
-    PROMPT = "Música épica de batalla, orquestal y frenética, estilo Dark Souls"
-    URL_YT = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-    MODO_3D = "SI"  # Opciones: "SI" / "NO"
-    DURACION = 15    # Segundos
-    # --------------------------------
+    INC_SFX = input("💥 ¿Inyectar SFX del juego? (S/N): ").upper() == 'S'
+    INC_VOZ = input("🗣️ ¿Mantener Voces del video? (S/N): ").upper() == 'S'
+    INC_3D  = input("🎧 ¿Efectos Espaciales 3D? (S/N): ").upper() == 'S'
 
-    try:
-        # 1. Extracción de samples del juego
-        print("[PROCESO 1/4] Extrayendo ADN sonoro del video...")
-        extractor = ExtractorPAIM()
-        ruta_original = extractor.descargar_audio(URL_YT)
-        pista_sfx = extractor.separar_pistas(ruta_original)
-        samples = extractor.aislar_impactos(pista_sfx, num_samples=3)
+    # PROCESAMIENTO
+    extractor = ExtractorPAIM()
+    print("\n[1/4] Descargando y Separando audio (Usando GPU 1 para Demucs)...")
+    # Forzamos a Demucs a usar la segunda GPU si existe
+    os.environ["CUDA_VISIBLE_DEVICES"] = "1" if torch.cuda.device_count() > 1 else "0"
+    
+    audio_raw = extractor.descargar_audio(URL_YT)
+    pista_sfx_completa = extractor.separar_pistas(audio_raw)
+    
+    # Rutas de pistas separadas (Demucs)
+    nombre_folder = os.path.basename(audio_raw).split('.')[0]
+    ruta_voz = f"./temp_paim/demucs_out/htdemucs/{nombre_folder}/vocals.wav"
+    samples_sfx = extractor.aislar_impactos(pista_sfx_completa) if INC_SFX else []
 
-        # 2. Composición con IA (GPU)
-        print("\n[PROCESO 2/4] IA componiendo melodía original...")
-        motor = PAIM_X()
-        pista_base_tensor = motor.generar_track(PROMPT, samples[0], DURACION)
-        
-        ruta_temp = "./temp_paim/base_raw.wav"
-        os.makedirs("./temp_paim", exist_ok=True)
-        sf.write(ruta_temp, pista_base_tensor[0].numpy().T, 32000)
+    # GENERACIÓN (GPU 0)
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+    print("\n[2/4] Componiendo melodía (Usando GPU 0)...")
+    motor = PAIM_X()
+    base_tensor = motor.generar_track(PROMPT, audio_raw, SEGUNDOS)
+    
+    os.makedirs("./temp_paim", exist_ok=True)
+    ruta_base = "./temp_paim/base.wav"
+    sf.write(ruta_base, base_tensor[0].numpy().T, 32000)
 
-        # 3. Mezcla Espacial 3D/8D
-        print("\n[PROCESO 3/4] Aplicando ingeniería de sonido espacial...")
-        activar_3d = True if MODO_3D.upper() == "SI" else False
-        mezclador = MezcladorEspacialIA(sample_rate=32000)
-        audio_3d = mezclador.inyectar_sfx_inteligente(ruta_temp, samples[1:], activar_3d)
-        
-        ruta_3d = "./temp_paim/base_3d.wav"
-        sf.write(ruta_3d, audio_3d.T, 32000)
+    # MASTERIZACIÓN
+    print("\n[3/4] Mezclando y aplicando efectos...")
+    mezclador = MezcladorEspacialIA()
+    voz_final = ruta_voz if INC_VOZ else None
+    audio_master = mezclador.procesar_master(ruta_base, samples_sfx, voz_final, INC_3D)
 
-        # 4. Firma de Pacure Labs
-        print("\n[PROCESO 4/4] Sellando master con marca de agua PLBS...")
-        firmador = MarcaDeAguaPLBS()
-        master_final = firmador.inyectar_firma(ruta_3d, texto="PLBS")
+    # FIRMA
+    print("\n[4/4] Sellando Espectrograma...")
+    firmador = MarcaDeAguaPLBS()
+    ruta_pre_master = "./temp_paim/pre_master.wav"
+    sf.write(ruta_pre_master, audio_master.T, 32000)
+    master_final = firmador.inyectar_firma(ruta_pre_master)
 
-        # Resultado final
-        nombre_salida = "PAIM_X_MASTER_FINAL.wav"
-        sf.write(nombre_salida, master_final.T, 32000)
-        
-        print("\n" + "="*60)
-        print(f"✅ ¡ÉXITO! Tu pista está lista: {nombre_salida}")
-        print("Gracias por usar tecnología de Pacure Labs.")
-        print("="*60 + "\n")
-
-    except Exception as e:
-        print(f"\n❌ Error crítico en el motor: {e}")
+    sf.write("PAIM_X_FINAL.wav", master_final.T, 32000)
+    print("\n✅ PROCESO COMPLETADO. Master guardado como: PAIM_X_FINAL.wav")
 
 if __name__ == "__main__":
-    paim_x_engine()
+    lanzar_paim_x()
