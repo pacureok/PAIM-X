@@ -1,4 +1,7 @@
 import os
+import sys
+import time
+import threading
 import torch
 import soundfile as sf
 from extractor_yt import ExtractorPAIM
@@ -6,13 +9,39 @@ from paim_x_core import PAIM_X
 from mezclador_3d import MezcladorEspacialIA
 from marca_agua_plbs import MarcaDeAguaPLBS
 
-def lanzar_paim_x():
-    print("\n" + "█"*40)
-    print("      PACURE LABS - PAIM-X V1.2")
-    print("█"*40 + "\n")
+class AnimacionCarga:
+    def __init__(self, mensaje="Componiendo"):
+        self.mensaje = mensaje
+        self.animacion = ['|', '/', '-', '\\']
+        self.corriendo = False
+        self.hilo = None
 
-    # Pedir datos al usuario
-    prompt = input("🎹 Escribe tu Prompt Musical: ")
+    def girar(self):
+        i = 0
+        while self.corriendo:
+            sys.stdout.write(f"\r{self.mensaje} {self.animacion[i % 4]} ")
+            sys.stdout.flush()
+            time.sleep(0.1)
+            i += 1
+
+    def iniciar(self):
+        self.corriendo = True
+        self.hilo = threading.Thread(target=self.girar)
+        self.hilo.start()
+
+    def detener(self):
+        self.corriendo = False
+        if self.hilo:
+            self.hilo.join()
+        sys.stdout.write(f"\r{self.mensaje} ✅ Hecho!        \n")
+        sys.stdout.flush()
+
+def lanzar_paim_x():
+    print("\n" + "█"*50)
+    print("      PACURE LABS - PAIM-X V1.3 MULTI-GPU")
+    print("█"*50 + "\n")
+
+    prompt = input("🎹 Prompt Musical: ")
     url = input("🔗 Link de YouTube: ")
     duracion_str = input("⏱️ Duración (Ej: 0:30 o 3:00): ")
     
@@ -23,7 +52,8 @@ def lanzar_paim_x():
     inc_voz = input("🗣️ ¿Mantener Voces del video? (S/N): ").lower() == 's'
     inc_3d  = input("🎧 ¿Efectos 3D L/R? (S/N): ").lower() == 's'
 
-    # Motor
+    print("\n" + "-"*50)
+    
     extractor = ExtractorPAIM()
     audio_raw = extractor.descargar_audio(url)
     pista_sfx_full = extractor.separar_pistas(audio_raw)
@@ -33,7 +63,13 @@ def lanzar_paim_x():
     samples_sfx = extractor.aislar_impactos(pista_sfx_full) if inc_sfx else []
 
     motor = PAIM_X()
+    
+    # --- ANIMACIÓN DE CARGA ---
+    spinner = AnimacionCarga(f"🎼 Generando {duracion_str} min de audio en GPU 0")
+    spinner.iniciar()
     base_tensor = motor.generar_track(prompt, audio_raw, segundos)
+    spinner.detener()
+    # --------------------------
     
     os.makedirs("./temp_paim", exist_ok=True)
     ruta_base = "./temp_paim/base.wav"
@@ -45,10 +81,12 @@ def lanzar_paim_x():
     firmador = MarcaDeAguaPLBS()
     ruta_p = "./temp_paim/pre.wav"
     sf.write(ruta_p, audio_master.T, 32000)
-    final = firmador.inyectar_firma(ruta_p)
+    
+    # EL SECRETO: Volumen al 0.001 para que no haya zumbido "lin"
+    final = firmador.inyectar_firma(ruta_p, texto="PLBS", volumen_firma=0.001)
 
     sf.write("PAIM_X_MASTER_FINAL.wav", final.T, 32000)
-    print("\n✅ ¡LISTO! Archivo: PAIM_X_MASTER_FINAL.wav")
+    print("\n✅ ¡LISTO! Archivo guardado con máxima fidelidad.")
 
 if __name__ == "__main__":
     lanzar_paim_x()
