@@ -1,0 +1,21 @@
+1. La Cláusula de "Integridad del Código" (Estilo Licencia LaTeX)
+Si tu miedo es que alguien modifique el código y eso cause fallos o inestabilidad en la versión oficial, puedes usar una licencia que exija que las modificaciones se distribuyan solo como parches o que el nombre cambie si el código se altera.
+
+LPPL (LaTeX Project Public License): Es famosa por esto. Permite que otros usen y contribuyan, pero si alguien modifica el archivo original, debe cambiarle el nombre o asegurarse de que no se confunda con la versión oficial "estable". Esto evita que alguien distribuya una versión "rota" bajo tu nombre.
+
+2. Copyleft Débil (MPL o LGPL)
+Estas licencias son ideales si quieres que las mejoras al "corazón" de tu modelo se compartan obligatoriamente, pero mantienen cierta separación.
+
+MPL (Mozilla Public License): Si alguien modifica tus archivos de código, debe compartir esas modificaciones bajo la misma licencia (contribuir de vuelta). Sin embargo, pueden combinar tu código con otros archivos privados.
+
+Ventaja: Te aseguras de recibir las mejoras, pero el código original mantiene una estructura clara.
+
+3. Licencias con "Cláusulas de Atribución y No Responsabilidad"
+Casi todas las licencias modernas (MIT, Apache 2.0, BSD) incluyen una sección de "Disclaimer" (Renuncia de responsabilidad).
+
+Dato clave: Aunque no prohíben "hacer que falle", estas licencias dicen legalmente: "Si usas esto o lo modificas y algo explota, no es mi culpa".
+
+Apache License 2.0: Es excelente porque permite que la gente contribuya, pero protege mucho el uso de tu marca registrada. Nadie puede usar tu nombre para promocionar una versión modificada (y potencialmente fallida) de tu modelo.
+
+4. Licencias de "Fuente Disponible" (Business Source License - BSL)
+Si quieres un control total (por ejemplo, "puedes usarlo y mejorar el código, pero no puedes hacer X cosa"), podrías usar una licencia de fuente disponible. No es 100% "Open Source" bajo la definición estricta, pero te da el poder de poner reglas específicas sobre cómo se debe tratar el modelo.
