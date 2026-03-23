@@ -1,16 +1,26 @@
 #!/bin/bash
-echo "🚀 Instalando entorno PAIM-X (Pacure Labs)..."
+echo "========================================================"
+echo "🚀 INSTALACIÓN RÁPIDA PAIM-X (SOLO BINARIOS) 🚀"
+echo "========================================================"
 
-# Actualizar sistema e instalar FFmpeg para audio
+# Actualizar sistema de forma silenciosa
 apt-get update -qq && apt-get install -y ffmpeg > /dev/null
 
-# Instalar PyTorch para GPU y xformers (necesario para MusicGen)
-pip install torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 --index-url https://download.pytorch.org/whl/cu118
-pip install xformers==0.0.22.post7
+# 1. Instalamos las versiones que YA TIENEN 'wheels' (archivos listos)
+# No forzamos versiones viejas para evitar que se ponga a compilar.
+pip install --no-cache-dir torch torchvision torchaudio 
 
-# Instalar AudioCraft y herramientas de IA
-pip install --no-deps git+https://github.com/facebookresearch/audiocraft#egg=audiocraft
-pip install demucs encodec flashy>=0.0.1 hydra-core>=1.1 julius num2words omegaconf pesq pystoi torchmetrics yt-dlp librosa soundfile Pillow
-pip install "numpy<2.0.0"
+# 2. xformers: Instalamos la versión más reciente que coincida con el torch instalado
+# Usamos --only-binary para asegurar que no intente construir nada.
+pip install --no-cache-dir --only-binary=:all: xformers
 
-echo "✅ Instalación terminada."
+# 3. AudioCraft (lo instalamos sin dependencias para que no rompa nada)
+pip install --no-cache-dir --no-deps git+https://github.com/facebookresearch/audiocraft#egg=audiocraft
+
+# 4. Resto de herramientas necesarias
+pip install --no-cache-dir demucs encodec flashy hydra-core julius num2words omegaconf pesq pystoi torchmetrics yt-dlp librosa soundfile Pillow
+pip install --no-cache-dir "numpy<2.0.0"
+
+echo "========================================================"
+echo "✅ ENTORNO LISTO SIN CONSTRUCCIÓN DE CÓDIGO."
+echo "========================================================"
