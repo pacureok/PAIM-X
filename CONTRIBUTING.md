@@ -2,7 +2,7 @@
 
 ¡Gracias por tu interés en contribuir a PAIM-X, el motor de IA musical de Pacure Labs! 
 
-Nos encanta recibir *Pull Requests* (PRs) de la comunidad. Ya sea que estés mejorando el modelo XLA para TPUs, optimizando la extracción de YouTube, o añadiendo nuevos efectos al mezclador 3D, tu ayuda es bienvenida.
+Nos encanta recibir *Pull Requests* (PRs) de la comunidad. Ya sea que estés mejorando el modelo XLA para GPU T4 x2s, optimizando la extracción de YouTube, o añadiendo nuevos efectos al mezclador 3D, tu ayuda es bienvenida.
 
 ## Cómo empezar
 1. Haz un **Fork** de este repositorio.
