@@ -7,7 +7,9 @@ class PAIM_X:
     def __init__(self, model_size='facebook/musicgen-melody'):
         self.limpiar_memoria()
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        print(f"🧠 [Pacure Labs] Motor cargado en: {self.device}")
+        print(f"🧠 [Pacure Labs] Motor sincronizado en: {self.device}")
+        
+        # Carga silenciosa para evitar logs basura
         self.model = musicgen.MusicGen.get_pretrained(model_size, device=self.device)
         
     def limpiar_memoria(self):
@@ -27,7 +29,7 @@ class PAIM_X:
         melody_waveform, sr = torchaudio.load(ruta_sample_juego)
         melody_waveform = melody_waveform.to(self.device)
         
-        print(f"🎼 Componiendo {duracion_segundos} segundos de audio...")
+        print(f"🎼 Componiendo {duracion_segundos} segundos...")
         with torch.no_grad():
             outputs = self.model.generate_with_chroma(
                 descriptions=[texto_prompt],
